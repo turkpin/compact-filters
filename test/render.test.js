@@ -56,6 +56,16 @@ describe("FilterBar", () => {
 
     assert.match(html, /02\.09\.2026 – 10\.09\.2026/);
   });
+
+  it("shows custom ranges in the given date format", () => {
+    const values = { date: { preset: "custom", from: "2026-09-02", to: "2026-09-10" } };
+
+    assert.match(renderToString(h(FilterBar, { filters, values, dateFormat: "iso" })), /2026-09-02 – 2026-09-10/);
+    assert.match(
+      renderToString(h(FilterBar, { filters, values, dateFormat: (date) => date.replaceAll("-", "/") })),
+      /2026\/09\/02 – 2026\/09\/10/,
+    );
+  });
 });
 
 describe("DateRangePicker", () => {
@@ -66,6 +76,16 @@ describe("DateRangePicker", () => {
 
     assert.match(html, /Bu ay/);
     assert.match(html, /01\.10\.2026/);
+  });
+
+  it("renders the trigger dates in the given date format", () => {
+    const html = renderToString(
+      h(DateRangePicker, { value: { preset: "thisMonth", from: "2026-10-01", to: "2026-10-15" }, dateFormat: "iso" }),
+    );
+
+    assert.match(html, /2026-10-01/);
+    assert.match(html, /2026-10-15/);
+    assert.doesNotMatch(html, /01\.10\.2026/);
   });
 
   it("falls back to the placeholder without a value", () => {

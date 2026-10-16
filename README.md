@@ -193,6 +193,7 @@ Use the components inside a client component (a file that starts with `"use clie
 | `onChange` | Called with what changed: `{ [key]: value }` |
 | `search` | Optional search box: `{ key, placeholder }` |
 | `locale` | `"tr"` (default) or `"en"` |
+| `dateFormat` | How picked days are written: `"locale"` (default, `01.10.2026` in Turkish), `"iso"` (`2026-10-01`) or your own function, `(isoDate) => text` |
 | `labels` | Your own texts |
 | `className` | Extra CSS classes for the bar |
 
@@ -221,7 +222,7 @@ Use the components inside a client component (a file that starts with `"use clie
 | `allowCustom` | Let the user pick days on the calendar (default `true`) |
 | `minDate`, `maxDate` | The first and last day the user can pick. `maxDate` is today by default, `null` means no limit |
 | `align` | Where the popup opens: `"start"`, `"center"` or `"end"` (default) |
-| `locale`, `labels` | Same as FilterBar |
+| `locale`, `labels`, `dateFormat` | Same as FilterBar |
 
 `DateRangePanel` is the picker without its button, for building your own.
 

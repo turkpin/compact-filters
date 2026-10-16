@@ -192,6 +192,7 @@ Component'leri bir client component içinde kullan (`"use client"` ile başlayan
 | `onChange` | Değişenle çağrılır: `{ [key]: value }` |
 | `search` | İsteğe bağlı arama kutusu: `{ key, placeholder }` |
 | `locale` | `"tr"` (varsayılan) ya da `"en"` |
+| `dateFormat` | Seçilen günlerin yazılışı: `"locale"` (varsayılan, Türkçede `01.10.2026`), `"iso"` (`2026-10-01`) ya da kendi fonksiyonunuz, `(isoDate) => metin` |
 | `labels` | Kendi yazıların |
 | `className` | Çubuğa eklenecek CSS class'ları |
 
@@ -220,7 +221,7 @@ Component'leri bir client component içinde kullan (`"use client"` ile başlayan
 | `allowCustom` | Kullanıcı takvimden gün seçebilsin (varsayılan `true`) |
 | `minDate`, `maxDate` | Seçilebilecek ilk ve son gün. `maxDate` varsayılan olarak bugündür, `null` sınır yok demek |
 | `align` | Pencerenin açılacağı yer: `"start"`, `"center"` ya da `"end"` (varsayılan) |
-| `locale`, `labels` | FilterBar'daki gibi |
+| `locale`, `labels`, `dateFormat` | FilterBar'daki gibi |
 
 `DateRangePanel`, butonu olmayan seçicidir; kendi butonunu yapmak için.
 

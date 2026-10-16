@@ -17,6 +17,7 @@ import {
   fromIsoDate,
   isIsoDate,
   startOfMonth,
+  toIsoDate,
   todayIso,
 } from "./date-range";
 
@@ -147,12 +148,24 @@ function getDateRangeFormatters(locale) {
   return formattersCache.get(locale);
 }
 
-export function useDateRangeFormatters(locale = "tr") {
-  return getDateRangeFormatters(locale);
+/**
+ * @param {string} locale     - "tr" | "en"
+ * @param {string|function} dateFormat - How range dates are shown: "locale" (default, "01.10.2026" in tr),
+ *                              "iso" ("2026-10-01") or (isoDate) => string
+ */
+export function useDateRangeFormatters(locale = "tr", dateFormat = "locale") {
+  const formatters = getDateRangeFormatters(locale);
+
+  return useMemo(() => {
+    if (dateFormat === "iso") return { ...formatters, short: { format: toIsoDate } };
+    if (typeof dateFormat === "function") return { ...formatters, short: { format: (date) => dateFormat(toIsoDate(date)) } };
+    return formatters;
+  }, [formatters, dateFormat]);
 }
 
 /**
- * Short label for an applied range: the preset name, or "01.10.2026 – 15.10.2026" for a custom range.
+ * Short label for an applied range: the preset name, or "01.10.2026 – 15.10.2026" for a custom range
+ * (dates as `formatters.short` shows them, see useDateRangeFormatters).
  */
 export function formatDateRangeLabel(value, labels, formatters) {
   if (!value) return "";
@@ -414,6 +427,7 @@ export function DateRangePanel({
  * @param {string|null} resetPreset - Show a "reset" action back to this preset while another range is applied
  * @param {string}   align         - Popover alignment relative to the trigger
  * @param {string}   className     - Extra classes for the trigger
+ * @param {string|function} dateFormat - Trigger dates: "locale" (default), "iso" ("2026-10-01") or (isoDate) => string
  * Remaining props are forwarded to DateRangePanel (presets, allowCustom, minDate, maxDate, locale, labels).
  */
 export function DateRangePicker({
@@ -424,10 +438,11 @@ export function DateRangePicker({
   align = "end",
   className,
   disabled = false,
+  dateFormat = "locale",
   ...panelProps
 }) {
   const labels = resolveLabels(panelProps.locale, panelProps.labels);
-  const formatters = useDateRangeFormatters(panelProps.locale);
+  const formatters = useDateRangeFormatters(panelProps.locale, dateFormat);
   const [open, setOpen] = useState(false);
 
   const presets = panelProps.presets ?? DATE_RANGE_PRESETS;
