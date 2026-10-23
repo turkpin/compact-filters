@@ -27,6 +27,14 @@ describe("FilterBar", () => {
     assert.match(html, /Ara\.\.\./);
   });
 
+  it("labels a value outside the options with valueLabel", () => {
+    const customer = { key: "customer", label: "Müşteri", options: [{ value: 7, label: "Can Demir" }], defaultValue: "all" };
+
+    assert.match(renderToString(h(FilterBar, { filters: [customer], values: { customer: 42 } })), /title="42"/);
+    assert.match(renderToString(h(FilterBar, { filters: [{ ...customer, valueLabel: "Ada Yılmaz" }], values: { customer: 42 } })), /Ada Yılmaz/);
+    assert.match(renderToString(h(FilterBar, { filters: [{ ...customer, valueLabel: "Eski ad" }], values: { customer: 7 } })), /title="Can Demir"/);
+  });
+
   it("hides filters on their default value", () => {
     const html = renderToString(h(FilterBar, { filters, values: { status: "all", date: null } }));
 

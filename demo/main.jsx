@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { createRoot } from "react-dom/client";
 import { DATE_RANGE_PRESETS, ALL_PRESET, FilterBar } from "../src/index.js";
 
@@ -7,6 +7,14 @@ const CUSTOMERS = [
   "Ada Yılmaz", "Can Demir", "Elif Kaya", "Mert Şahin", "Zeynep Çelik", "Deniz Aydın", "Ece Arslan",
   "Kerem Doğan", "Selin Koç", "Burak Kurt", "İrem Özdemir", "Emre Aslan", "Naz Polat", "Onur Erdem",
 ];
+// Like an API that returns one page of customers, so the filter searches through onSearchChange
+const CUSTOMER_PAGE_SIZE = 10;
+function fetchCustomers(query) {
+  const needle = query.trim().toLocaleLowerCase("tr");
+  const page = CUSTOMERS.filter((customer) => customer.toLocaleLowerCase("tr").includes(needle)).slice(0, CUSTOMER_PAGE_SIZE);
+  return new Promise((resolve) => setTimeout(() => resolve(page.map((customer) => ({ value: customer, label: customer }))), 150));
+}
+
 const STATUSES = ["paid", "unpaid", "refunded"];
 const CHANNELS = ["web", "mobile", "store"];
 
@@ -81,6 +89,16 @@ function Demo() {
   const showToolbar = params.get("toolbar") !== "0";
   const text = TEXTS[locale];
   const [values, setValues] = useState(readInitialValues);
+  const [customerQuery, setCustomerQuery] = useState("");
+  const [customerOptions, setCustomerOptions] = useState([]);
+
+  useEffect(() => {
+    let current = true;
+    fetchCustomers(customerQuery).then((options) => current && setCustomerOptions(options));
+    return () => {
+      current = false;
+    };
+  }, [customerQuery]);
 
   const filters = useMemo(
     () => [
@@ -100,7 +118,10 @@ function Demo() {
         key: "customer",
         label: text.customer,
         defaultValue: "all",
-        options: CUSTOMERS.map((customer) => ({ value: customer, label: customer })),
+        options: customerOptions,
+        onSearchChange: setCustomerQuery,
+        // The picked customer may not be on the loaded page
+        valueLabel: values.customer,
       },
       {
         key: "date",
@@ -111,7 +132,7 @@ function Demo() {
         allowOpenRange: true,
       },
     ],
-    [text],
+    [text, customerOptions, values.customer],
   );
 
   const rows = INVOICES.filter((invoice) => {

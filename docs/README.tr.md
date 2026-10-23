@@ -113,6 +113,15 @@ Hepsi bu. Her parça ne işe yarar:
 
 - `"all"`'u `options` içine koyma. Kutucuğu kaldırmak zaten "hepsi" demek.
 - Liste uzun mu? İçinde kendiliğinden bir arama kutusu çıkar (8'den fazla seçenekte). Hep görünsün istersen `searchable: true` ekle.
+- Seçenekler bir API'den sayfa sayfa mı geliyor? `onSearchChange` ekle, arama kutusu seçeneklerde kendisi aramak yerine yazılanı sana gönderir. Uyan seçenekleri yükle ve `options` olarak ver:
+
+  ```js
+  { key: "customer", label: "Müşteri", defaultValue: "all", options: customers, onSearchChange: setCustomerQuery }
+  ```
+
+  Her tuşta çağrılır, API'ye gitmeden önce biraz bekle. Liste kapanınca bir kez de `""` ile çağrılır.
+
+  Seçili müşteri yüklediğin sayfada olmayabilir. Adını `valueLabel` olarak ver, kutucuk çıplak değer yerine onu gösterir, örneğin `valueLabel: "Ada Yılmaz"`.
 - İkon mu istiyorsun? `icon: BirIkon` ekle. Herhangi bir React component'i olur, örneğin `lucide-react`'ten biri.
 
 ### Tarih aralığı
@@ -233,6 +242,8 @@ Component'leri bir client component içinde kullan (`"use client"` ile başlayan
 | `defaultValue` | "Filtre yok" anlamına gelen değer (`"all"`, `null`…) |
 | `options` | `[{ value, label }]`, seçenek listesi için |
 | `searchable` | Listedeki arama kutusunu hep göster |
+| `onSearchChange` | `(query) => {}`, seçeneklerde sen ara, örneğin API'nde. Liste `options`'ı olduğu gibi gösterir |
+| `valueLabel` | `options` içinde olmayan bir değer için kutucuk yazısı |
 | `type` | Tarih aralığı için `"dateRange"` |
 | `presets` | Tarih aralığında hangi hızlı seçimler görünsün |
 | `allowOpenRange` | Tarih aralığında yalnızca başlangıç ya da yalnızca bitiş günüyle uygulanabilsin |

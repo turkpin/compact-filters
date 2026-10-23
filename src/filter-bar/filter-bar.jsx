@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Check, ChevronDown, ListFilter, Search, X } from "../icons";
 import { cn } from "../cn";
 import { resolveLabels } from "../labels";
@@ -16,9 +16,12 @@ const SEARCHABLE_OPTION_THRESHOLD = 8;
  * Clicking a chip changes its value, × removes it (back to its default value).
  *
  * @param {Array}    filters  - Filter definitions:
- *                              select:     { key, label, icon?, options: [{ value, label }], defaultValue, searchable? }
+ *                              select:     { key, label, icon?, options: [{ value, label }], defaultValue, searchable?, onSearchChange?, valueLabel? }
  *                              date range: { key, label, icon?, type: "dateRange", defaultValue: null, presets?, allowOpenRange?, minDate?, maxDate?, emptyValues?, emptyValuesHint? }
  *                              `defaultValue` means "not filtering" and is not listed in `options`.
+ *                              `onSearchChange` (query) => void makes the option search remote: the typed text goes to the app,
+ *                              which passes the matching `options` back; they are not filtered here. "" again on close.
+ *                              `valueLabel` is the chip text for a value that is not in `options`.
  *                              A date range value is { preset, from, to } with inclusive ISO "YYYY-MM-DD" dates.
  *                              `allowOpenRange` also applies only a start or only an end day, the other one null.
  *                              `minDate` / `maxDate` limit the calendar like DateRangePicker (`maxDate` today by default, null → no limit).
@@ -266,13 +269,33 @@ function FilterOptions({ filter, value, labels, onSelect }) {
   const [query, setQuery] = useState("");
   const listRef = useRef(null);
   const options = filter.options;
-  const searchable = filter.searchable ?? (options?.length ?? 0) > SEARCHABLE_OPTION_THRESHOLD;
+  // With onSearchChange the app searches, e.g. an API that returns one page of options
+  const remoteSearch = typeof filter.onSearchChange === "function";
+  const searchable = filter.searchable ?? (remoteSearch || (options?.length ?? 0) > SEARCHABLE_OPTION_THRESHOLD);
 
   const visibleOptions = useMemo(() => {
     const needle = query.trim().toLocaleLowerCase("tr");
-    if (!needle) return options ?? [];
+    if (!needle || remoteSearch) return options ?? [];
     return (options ?? []).filter((option) => String(option.label).toLocaleLowerCase("tr").includes(needle));
-  }, [options, query]);
+  }, [options, query, remoteSearch]);
+
+  // The list opens with an empty search box, so the app gets "" back when it closes
+  const lastSearchRef = useRef(null);
+  useEffect(() => {
+    lastSearchRef.current = { query, onSearchChange: filter.onSearchChange };
+  });
+  useEffect(
+    () => () => {
+      const last = lastSearchRef.current;
+      if (last?.query && typeof last.onSearchChange === "function") last.onSearchChange("");
+    },
+    [],
+  );
+
+  function handleQueryChange(event) {
+    setQuery(event.target.value);
+    if (remoteSearch) filter.onSearchChange(event.target.value);
+  }
 
   function focusOption(offset) {
     const items = Array.from(listRef.current?.querySelectorAll("[data-filter-option]") ?? []);
@@ -307,7 +330,7 @@ function FilterOptions({ filter, value, labels, onSelect }) {
             <input
               autoFocus
               value={query}
-              onChange={(event) => setQuery(event.target.value)}
+              onChange={handleQueryChange}
               placeholder={labels.searchOptions}
               className="h-full w-full min-w-0 bg-transparent text-sm outline-none placeholder:text-muted-foreground/60"
             />
@@ -351,5 +374,5 @@ function isFilterActive(filter, values) {
 
 function getValueLabel(filter, value, labels, formatters) {
   if (filter.type === "dateRange") return formatDateRangeLabel(value, labels, formatters);
-  return filter.options?.find((option) => option.value === value)?.label ?? value;
+  return filter.options?.find((option) => option.value === value)?.label ?? filter.valueLabel ?? value;
 }
