@@ -119,9 +119,44 @@ Hepsi bu. Her parça ne işe yarar:
   { key: "customer", label: "Müşteri", defaultValue: "all", options: customers, onSearchChange: setCustomerQuery }
   ```
 
-  Her tuşta çağrılır, API'ye gitmeden önce biraz bekle. Liste kapanınca bir kez de `""` ile çağrılır.
+  Her tuşta çağrılır, API'ye gitmeden önce biraz bekle. Liste kapanınca bir kez de `""` ile çağrılır. Yüklerken `loading: true` ver, boş liste "Sonuç bulunamadı" yerine "Yükleniyor…" der.
 
   Seçili müşteri yüklediğin sayfada olmayabilir. Adını `valueLabel` olarak ver, kutucuk çıplak değer yerine onu gösterir, örneğin `valueLabel: "Ada Yılmaz"`.
+
+  Değer olarak id kullanıyorsan seçili müşterinin adını sen tut: kullanıcı listeden seçince seçeneklerinden al, id adres çubuğundan gelince API'nden iste:
+
+  ```jsx
+  const [customerQuery, setCustomerQuery] = useState("");
+  // Senin API'n, örneğin [{ value: "42", label: "Ada Yılmaz" }]. Id'ler metin, adres çubuğu da onları metin olarak geri verir
+  const { customers, loading } = useCustomerSearch(customerQuery);
+  const [picked, setPicked] = useState(null); // seçili müşterinin { value, label }'ı
+
+  // Id adres çubuğundan (ya da geri tuşundan) geldi: adını API'nden iste
+  useEffect(() => {
+    if (values.customer === "all" || picked?.value === values.customer) return;
+    getCustomer(values.customer).then((customer) => setPicked({ value: customer.id, label: customer.name }));
+  }, [values.customer]);
+
+  function handleChange(changes) {
+    // Listeden seçildi: adı seçeneklerinde var
+    if ("customer" in changes) setPicked(customers.find((customer) => customer.value === changes.customer) ?? null);
+    setValues({ ...values, ...changes });
+  }
+
+  const filters = [
+    {
+      key: "customer",
+      label: "Müşteri",
+      defaultValue: "all",
+      options: customers,
+      loading,
+      onSearchChange: setCustomerQuery,
+      valueLabel: picked?.label,
+    },
+  ];
+
+  <FilterBar filters={filters} values={values} onChange={handleChange} />
+  ```
 - İkon mu istiyorsun? `icon: BirIkon` ekle. Herhangi bir React component'i olur, örneğin `lucide-react`'ten biri.
 
 ### Tarih aralığı
@@ -243,6 +278,7 @@ Component'leri bir client component içinde kullan (`"use client"` ile başlayan
 | `options` | `[{ value, label }]`, seçenek listesi için |
 | `searchable` | Listedeki arama kutusunu hep göster |
 | `onSearchChange` | `(query) => {}`, seçeneklerde sen ara, örneğin API'nde. Liste `options`'ı olduğu gibi gösterir |
+| `loading` | Seçenekleri yüklerken `true`, boş liste o sırada "Yükleniyor…" der |
 | `valueLabel` | `options` içinde olmayan bir değer için kutucuk yazısı |
 | `type` | Tarih aralığı için `"dateRange"` |
 | `presets` | Tarih aralığında hangi hızlı seçimler görünsün |
